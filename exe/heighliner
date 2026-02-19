@@ -1,0 +1,86 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'optimist'
+require 'fileutils'
+require 'yaml'
+require 'json'
+require 'erb'
+
+require 'heighliner'
+
+sub_command_strings = Heighliner::SUB_COMMANDS.keys.map(&:to_s)
+
+Heighliner::SUB_COMMANDS.each { |k, v| Heighliner::Cli.register(k, v) }
+
+# It was difficult to allow global arguments like -v and -q to be typed both before and after cmds
+# and still support `heighliner -h` for full help messages and `heighliner subcmd -h` for focused messages.
+# Putting the global options in an array, using an Optimist::Parser and basically everything up to
+# the 'end parser hacks' comment are all hacks to marry the above two behaviours.
+
+global_opts = [
+  [:verbose, "Show Heighliner's debug output", { short: '-v' }],
+  [:quiet, 'Suppress all output', { short: '-q' }]
+]
+
+parser = Optimist::Parser.new do
+  version "Heighliner v#{Heighliner::VERSION}"
+
+  banner <<~BANNER
+    #{version}
+
+    Heighliner is a tool to make development a lot easier by defining how an application starts using a \`Steerfile\` in the source code's root directory.
+
+    Prerequisites
+    =============
+
+    Install docker on your system and make sure the current user has all the rights required to spin up docker containers.
+
+    Usage
+    =====
+
+    For typical usage you'll want to do the following three commands.
+
+    \`\`\`
+    heighliner init ENV_NAME
+    heighliner up
+    heighliner attach
+    \`\`\`
+
+    This will boot up your application in docker and bind mount your local source directory so you can start doing development. Happy coding!
+
+    If any of these commands are giving you trouble, please run them with the \`-v\` flag set. They will show you what exactly is happening so you can debug.
+
+    Subcommands
+    ===========
+
+    - #{Heighliner::SUB_COMMANDS.keys.join("\n- ")}
+
+    Type \`SUB_COMMAND -h\` for help with specific subcommands.
+
+    Global Parameters
+    =================
+  BANNER
+
+  global_opts.each { |o| opt(*o) }
+end
+
+commands = sub_command_strings & ARGV
+
+if commands.empty?
+  Optimist.with_standard_exception_handling parser do
+    raise Optimist::HelpNeeded
+  end
+end
+
+cmd = commands.first
+## end parser hacks ##
+
+begin
+  Heighliner::Cli.run_command(:"#{cmd}", global_opts)
+rescue Heighliner::Error => e
+  puts ''
+  puts e.message
+end
+
+puts ''

@@ -13,10 +13,10 @@ jobs:
         password: ${{ secrets.DOCKERHUB_PAT }}
     - name: setup
       run: |-
-        docker build . -t degicadev/kaiser:latest
-        docker push degicadev/kaiser:latest
-        docker build . -t degicadev/kaiser:`bin/version`
-        docker push degicadev/kaiser:`bin/version`
+        docker build . -t davidsiaw/heighliner:latest
+        docker push davidsiaw/heighliner:latest
+        docker build . -t davidsiaw/heighliner:`bin/version`
+        docker push davidsiaw/heighliner:`bin/version`
 
 'on':
   push:

@@ -4,13 +4,13 @@ title: Plugins
 
 # Plugins
 
-Kaiser has a plugin system that adds commands to the Kaiserfile to help improve your workflow. Below are a list of built-in plugins that come with Kaiser.
+Heighliner has a plugin system that adds commands to the Steerfile to help improve your workflow. Below are a list of built-in plugins that come with Heighliner.
 
 ---
 
 ## Git Submodules Plugin
 
-This plugin ensures that any submodules your repo has are checked out. If they are not, it will cause Kaiser to exit with a status code of 1.
+This plugin ensures that any submodules your repo has are checked out. If they are not, it will cause Heighliner to exit with a status code of 1.
 
 Usage:
 

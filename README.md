@@ -1,17 +1,45 @@
-# Kaiser
+# Heighliner
 
-Welcome to Kaiser! Kaiser will mind-control all your monsters and make them even more effective.
+Heighliner is a tool that allows you to describe your web application using a Steerfile. This removes the guesswork of setting up a web application for development and gives teams an edge by allowing new developers on a system to hit the ground running, as well as propagate any changes in settings to other developers via source code. The Steerfile gives you an immense amount of control on how you want your application set up.
 
-Kaiser lets you define how an application starts, so trying out a web application simply reduces to a `kaiser up`
+# Dependencies
 
-## Installation (Traditional)
+Heighliner depends on Docker
+
+# Installation
+
+## Installation (Docker)
+
+Simply add the following line to your `.bashrc` or `.bash_profile` or '.zshrc'
+
+```
+alias heighliner='docker run --pull=always --rm -ti -v /var/run/docker.sock:/var/run/docker.sock -v $HOME/.heighliner:/root/.heighliner -v `pwd`:`pwd` -e _HEIGHLINER_USER_HOME=$HOME -e _HEIGHLINER_POS=docker -e CONTEXT_DIR="`pwd`" davidsiaw/heighliner'
+```
+
+Or if you use fish
+
+```
+function heighliner
+  docker run --pull=always --rm -ti -v /var/run/docker.sock:/var/run/docker.sock -v $HOME/.heighliner:/root/.heighliner -v (pwd):(pwd) -e _HEIGHLINER_USER_HOME=$HOME -e _HEIGHLINER_POS=docker -e CONTEXT_DIR=(pwd) davidsiaw/heighliner $argv
+end
+```
+
+Confirm it is working by running
+
+```
+heighliner -h
+```
+
+## Installation (Development)
+
+This is only required if you want to add features to heighliner
 
 1. Download and setup [Docker](https://www.docker.com/get-started)
 
 2. Add this line to your application's Gemfile:
 
 ```ruby
-gem 'kaiser', git: "https://github.com/degica/kaiser"
+gem 'heighliner', git: "https://github.com/davidsiaw/heighliner"
 ```
 
 3. Execute:
@@ -21,48 +49,31 @@ gem 'kaiser', git: "https://github.com/degica/kaiser"
     Or install it yourself as:
 
         $ gem install specific_install
-        $ gem specific_install -l https://github.com/degica/kaiser
+        $ gem specific_install -l https://github.com/davidsiaw/heighliner
 
-## Installation (Docker)
 
-You can install Kaiser as a docker image on your machine too!
+## Building the docker container
+
+You can build the Heighliner image on your machine if you want
 
 Simply clone the repo and run 
 
 ```
-cd kaiser
+cd heighliner
 bundle
-docker build -t degica/kaiser . 
+docker build -t davidsiaw/heighliner . 
 ```
 
-And then add the following line to your `.bashrc` or `.bash_profile`
+And then
 
-```
-alias kaiser='docker run --pull=always --rm -ti -v /var/run/docker.sock:/var/run/docker.sock -v $HOME/.kaiser:/root/.kaiser -v `pwd`:`pwd` -e _KAISER_USER_HOME=$HOME -e _KAISER_POS=docker -e CONTEXT_DIR="`pwd`" degicadev/kaiser'
-```
+# Usage
 
-Or if you use fish
-
-```
-function kaiser
-  docker run --pull=always --rm -ti -v /var/run/docker.sock:/var/run/docker.sock -v $HOME/.kaiser:/root/.kaiser -v (pwd):(pwd) -e _KAISER_USER_HOME=$HOME -e _KAISER_POS=docker -e CONTEXT_DIR=(pwd) degicadev/kaiser $argv
-end
-```
-
-Confirm it is working by running
-
-```
-kaiser -h
-```
-
-## Usage
-
-You'll need a Dockerfile and a Kaiserfile. The Kaiserfile should be placed in the project root directory, with contents like this:
+You'll need a Dockerfile and a Steerfile. The Steerfile should be placed in the project root directory, with contents like this:
 
 ```ruby
-# Example Kaiserfile for a Rails app
+# Example Steerfile for a Rails app
 
-dockerfile "Dockerfile.kaiser"
+dockerfile "Dockerfile"
 
 db "mysql:5.6",
   port: 3306,
@@ -92,8 +103,8 @@ CMD ["sh", "-c", "rails -b 0.0.0.0 -p 3000"]
 Then go to your repo's root folder and go
 
 ```sh
-bundle exec kaiser init myapp
-bundle exec kaiser up
+bundle exec heighliner init myapp
+bundle exec heighliner up
 ```
 
 Once its done, simply
@@ -106,7 +117,7 @@ And enjoy previewing your app!
 
 ## More documentation
 
-You can find even more documentation in https://tech.degica.com/kaiser.
+You can find even more documentation in https://davidsiaw.github.io/heighliner.
 
 If you wish to read a HTML version of this documentation you can go:
 
@@ -125,7 +136,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/degica/kaiser. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/davidsiaw/heighliner. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 ## License
 
@@ -133,4 +144,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the Kaiser project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/degica/kaiser/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the Heighliner project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/davidsiaw/heighliner/blob/master/CODE_OF_CONDUCT.md).

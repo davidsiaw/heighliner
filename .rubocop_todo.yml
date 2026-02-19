@@ -19,7 +19,7 @@ Bundler/OrderedGems:
 # Include: **/*.gemspec
 Gemspec/RequiredRubyVersion:
   Exclude:
-    - 'kaiser.gemspec'
+    - 'heighliner.gemspec'
 
 # Offense count: 2
 # This cop supports safe autocorrection (--autocorrect).
@@ -70,20 +70,20 @@ Metrics/ParameterLists:
 # ForbiddenDelimiters: (?i-mx:(^|\s)(EO[A-Z]{1}|END)(\s|$))
 Naming/HeredocDelimiterNaming:
   Exclude:
-    - 'lib/kaiser/cmds/attach.rb'
-    - 'lib/kaiser/cmds/db_load.rb'
-    - 'lib/kaiser/cmds/db_reset.rb'
-    - 'lib/kaiser/cmds/db_reset_hard.rb'
-    - 'lib/kaiser/cmds/db_save.rb'
-    - 'lib/kaiser/cmds/deinit.rb'
-    - 'lib/kaiser/cmds/down.rb'
-    - 'lib/kaiser/cmds/init.rb'
-    - 'lib/kaiser/cmds/login.rb'
-    - 'lib/kaiser/cmds/logs.rb'
-    - 'lib/kaiser/cmds/set.rb'
-    - 'lib/kaiser/cmds/show.rb'
-    - 'lib/kaiser/cmds/shutdown.rb'
-    - 'lib/kaiser/cmds/up.rb'
+    - 'lib/heighliner/cmds/attach.rb'
+    - 'lib/heighliner/cmds/db_load.rb'
+    - 'lib/heighliner/cmds/db_reset.rb'
+    - 'lib/heighliner/cmds/db_reset_hard.rb'
+    - 'lib/heighliner/cmds/db_save.rb'
+    - 'lib/heighliner/cmds/deinit.rb'
+    - 'lib/heighliner/cmds/down.rb'
+    - 'lib/heighliner/cmds/init.rb'
+    - 'lib/heighliner/cmds/login.rb'
+    - 'lib/heighliner/cmds/logs.rb'
+    - 'lib/heighliner/cmds/set.rb'
+    - 'lib/heighliner/cmds/show.rb'
+    - 'lib/heighliner/cmds/shutdown.rb'
+    - 'lib/heighliner/cmds/up.rb'
 
 # Offense count: 1
 # Configuration parameters: EnforcedStyle, CheckMethodNames, CheckSymbols, AllowedIdentifiers, AllowedPatterns.

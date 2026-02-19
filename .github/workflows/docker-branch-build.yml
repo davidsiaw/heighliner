@@ -15,8 +15,8 @@ jobs:
         password: ${{ secrets.DOCKERHUB_PAT }}
     - name: setup
       run: |-
-        docker build . -t degicadev/kaiser:branch-${{ steps.extract_branch.outputs.branch }}
-        docker push degicadev/kaiser:branch-${{ steps.extract_branch.outputs.branch }}
+        docker build . -t davidsiaw/heighliner:branch-${{ steps.extract_branch.outputs.branch }}
+        docker push davidsiaw/heighliner:branch-${{ steps.extract_branch.outputs.branch }}
 
 'on':
   push:

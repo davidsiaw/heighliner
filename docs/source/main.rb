@@ -2,10 +2,10 @@
 
 def create_page(title, path, files, &block)
 
-  sidenav_page path, "Kaiser Docs - #{title}" do
+  sidenav_page path, "Heighliner Docs - #{title}" do
     request_css 'css/main.css'
 
-    brand 'Kaiser Docs'
+    brand 'Heighliner Docs'
 
     menu do
       files.each do |x|
@@ -17,7 +17,7 @@ def create_page(title, path, files, &block)
 
     header do
       col 12 do
-        h2 'Kaiser Documentation'
+        h2 'Heighliner Documentation'
         breadcrumb [title]
       end
     end

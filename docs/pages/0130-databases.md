@@ -4,7 +4,7 @@ title: Databases
 
 ## Setting up a Database for your app
 
-The easiest way to setup a database for your app to use is add the folliwing to your Kaiserfile:
+The easiest way to setup a database for your app to use is add the folliwing to your Steerfile:
 
 ```ruby
 plugin :database

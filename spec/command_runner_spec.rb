@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'kaiser/command_runner'
+require 'heighliner/command_runner'
 
-RSpec.describe Kaiser::CommandRunner do
+RSpec.describe Heighliner::CommandRunner do
   # this is the core function of this class
   describe '#run_command' do
     it 'runs a simple command' do
@@ -93,7 +93,7 @@ RSpec.describe Kaiser::CommandRunner do
       allow(described_class).to receive(:run).with(out, 'woof', env_vars: { 'FOO' => 'bar' }).and_return('1')
 
       expect { described_class.run!(out, 'woof', env_vars: { 'FOO' => 'bar' }) }
-        .to raise_error Kaiser::CmdError
+        .to raise_error Heighliner::CmdError
     end
   end
 end

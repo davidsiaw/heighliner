@@ -3,11 +3,11 @@
 require 'open3'
 
 module DummyAppHelpers
-  # Run a command with Kaiser
+  # Run a command with Heighliner
   def run_cmd(args)
     gem_root = Dir.pwd
     Dir.chdir(dummy_app) do
-      output = Open3.popen3("#{gem_root}/exe/kaiser #{args}")
+      output = Open3.popen3("#{gem_root}/exe/heighliner #{args}")
       [output[1].read, output[2].read].join
     end
   end
