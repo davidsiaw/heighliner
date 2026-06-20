@@ -2,7 +2,7 @@
 
 def create_page(title, path, files, &block)
 
-  sidenav_page path, "Heighliner Docs - #{title}" do
+  sidenav_page path, "Heighliner Docs - #{title}", theme: 'dark' do
     request_css 'css/main.css'
 
     brand 'Heighliner Docs'
