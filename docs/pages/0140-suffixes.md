@@ -94,7 +94,16 @@ op read "op://Vault/Dev-Certs/certificate"   → lvh.me.crt
 op read "op://Vault/Dev-Certs/ca-bundle"     → lvh.me.chain.pem
 ```
 
-Make sure the `op` CLI is installed and authenticated on your machine.
+#### Docker mode
+
+Use a service account token:
+
+```sh
+export OP_SERVICE_ACCOUNT_TOKEN=ops_...
+docker run -e OP_SERVICE_ACCOUNT_TOKEN=$OP_SERVICE_ACCOUNT_TOKEN heighliner ...
+```
+
+Create the token in the 1Password web app: Integrations → Developer Tools → Service Accounts. The token starts with `ops_` and grants the `op` CLI access to your vaults.
 
 #### HTTP/HTTPS Your own domain
 

@@ -518,7 +518,10 @@ module Heighliner
         item = Config.config[:cert_source]['1password']
         field = file.sub(/^#{http_suffix}\./, '')
         tmpfile = "/tmp/heighliner-cert-#{file}"
-        CommandRunner.run! Config.out, "op read \"op://#{item}/#{field}\" > #{tmpfile}"
+        token = ENV['OP_SERVICE_ACCOUNT_TOKEN']
+        raise Heighliner::Error, 'OP_SERVICE_ACCOUNT_TOKEN is not set' unless token
+
+        CommandRunner.run! Config.out, "OP_SERVICE_ACCOUNT_TOKEN=#{token} op read \"op://#{item}/#{field}\" > #{tmpfile}"
         unless File.exist?(tmpfile) && File.size(tmpfile).positive?
           raise Heighliner::Error,
                 "1Password field '#{field}' not found in item '#{item}'"

@@ -144,8 +144,9 @@ alias heighliner='docker run --rm -ti \
   -e _HEIGHLINER_POS=docker \
   -e CONTEXT_DIR="`pwd`" \
   davidsiaw/heighliner'
-
 ```
+
+For 1Password certificates, set `OP_SERVICE_ACCOUNT_TOKEN` before running heighliner.
 
 ## Contributing
 
