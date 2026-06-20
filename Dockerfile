@@ -1,20 +1,39 @@
+FROM docker AS docker
+
 FROM ruby:slim
 
-RUN apt-get update && apt-get install --no-install-recommends -y curl && \
-    curl -sSL https://downloads.1password.com/linux/debian/amd64/stable/1password-cli-amd64-latest.deb -o /tmp/op.deb && \
-    dpkg-deb -x /tmp/op.deb /tmp/op && \
-    mv /tmp/op/usr/bin/op /usr/local/bin/op && \
-    rm -rf /tmp/op /tmp/op.deb && \
-    rm -rf /var/lib/apt/lists/*
+COPY --from=docker /usr/local/bin/docker /usr/local/bin/docker
+COPY --from=docker /usr/local/libexec/docker/cli-plugins/docker-buildx /usr/local/libexec/docker/cli-plugins/docker-buildx
+
+
+RUN apt update && apt install -yy build-essential git tar curl gpg
+
+RUN curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
+	gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg && \
+	echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/$(dpkg --print-architecture) stable main" | \
+	tee /etc/apt/sources.list.d/1password.list && \
+	mkdir -p /etc/debsig/policies/AC2D62742012EA22/ && \
+	curl -sS https://downloads.1password.com/linux/debian/debsig/1password.pol | \
+	tee /etc/debsig/policies/AC2D62742012EA22/1password.pol && \
+	mkdir -p /usr/share/debsig/keyrings/AC2D62742012EA22 && \
+	curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
+	gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg && \
+	apt update && apt install 1password-cli
+
+
+
+ADD lib/heighliner/version.rb /app/lib/heighliner/version.rb
+ADD Gemfile Gemfile.lock heighliner.gemspec Rakefile /app/
+RUN cd /app/ && bundle install
 
 ADD bin /app/bin
 ADD exe /app/exe
 ADD lib /app/lib
 ADD spec /app/spec
-ADD Gemfile heighliner.gemspec Rakefile entrypoint.sh /app/
+
+RUN cd /app/ && rake install
 
 WORKDIR /app
 
-RUN echo 'gem: --no-rdoc --no-ri' > ~/.gemrc && gem build heighliner.gemspec && gem install `ls *.gem`
-
+ADD entrypoint.sh /app/
 ENTRYPOINT ["sh", "entrypoint.sh"]

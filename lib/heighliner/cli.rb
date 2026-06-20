@@ -18,7 +18,7 @@ module Heighliner
       # This is here for backwards compatibility since it can be used in Steerfiles.
       # It would be a good idea to deprecate this and make it more abstract.
       @work_dir = Config.work_dir
-      @config_dir = Config.work_dir
+      @config_dir = Config.config_dir
       @config_file = Config.config_file
       @steerfile = Config.steerfile
       @config = Config.config
@@ -502,26 +502,50 @@ module Heighliner
     end
 
     def copy_keyfile(file)
+      Config.info_out.puts "Loading certificate file: #{file}"
       if Config.config[:cert_source][:folder]
+        Config.info_out.puts "  Source: folder (#{Config.config[:cert_source][:folder]})"
         CommandRunner.run! Config.out, "docker run --rm
           -v #{Config.config[:shared_names][:certs]}:/certs
           -v #{Config.config[:cert_source][:folder]}:/cert_source
           alpine cp /cert_source/#{file} /certs/#{file}"
 
       elsif Config.config[:cert_source][:url]
+        Config.info_out.puts "  Source: URL (#{Config.config[:cert_source][:url]}/#{file})"
         CommandRunner.run! Config.out, "docker run --rm
           -v #{Config.config[:shared_names][:certs]}:/certs
           alpine wget #{Config.config[:cert_source][:url]}/#{file}
             -O /certs/#{file}"
 
-      elsif Config.config[:cert_source]['1password']
-        item = Config.config[:cert_source]['1password']
-        field = file.sub(/^#{http_suffix}\./, '')
-        tmpfile = "/tmp/heighliner-cert-#{file}"
+      elsif Config.config[:cert_source][:"1password"]
+        item = Config.config[:cert_source][:"1password"]
+        origfield = file.sub(/^#{http_suffix}\./, '')
         token = ENV['OP_SERVICE_ACCOUNT_TOKEN']
+
+        field = origfield
+        if Config.config[:cert_source]["1password-fields"]
+          field = Config.config[:cert_source]["1password-fields"][origfield]
+        end
+
         raise Heighliner::Error, 'OP_SERVICE_ACCOUNT_TOKEN is not set' unless token
 
-        CommandRunner.run! Config.out, "OP_SERVICE_ACCOUNT_TOKEN=#{token} op read \"op://#{item}/#{field}\" > #{tmpfile}"
+        Config.info_out.puts "  Source: 1Password (item: #{item}, field: #{field} (#{origfield}) )"
+
+        # take it out
+        certstoredir = "#{ENV['CONTEXT_DIR']}/.tmp.certstore"
+        tmpfile = "#{certstoredir}/#{file}"
+        CommandRunner.run!(Config.out, "mkdir -p #{certstoredir}")
+        CommandRunner.run!(Config.out, "op read \"op://#{item}/#{field}\" > #{tmpfile}")
+        Config.info_out.puts("wrote into file #{tmpfile}")
+        CommandRunner.run!(Config.out, "ls #{tmpfile}")
+
+        # put it in
+        CommandRunner.run! Config.out, "docker run --rm
+          -v #{Config.config[:shared_names][:certs]}:/certs
+          -v #{certstoredir}:/tmpcert
+          alpine
+          cp /tmpcert/#{file} /certs/#{file}"
+
         unless File.exist?(tmpfile) && File.size(tmpfile).positive?
           raise Heighliner::Error,
                 "1Password field '#{field}' not found in item '#{item}'"
@@ -531,11 +555,12 @@ module Heighliner
           -v #{Config.config[:shared_names][:certs]}:/certs
           -v #{tmpfile}:/cert_source
           alpine cp /cert_source /certs/#{file}"
-        FileUtils.rm(tmpfile)
+        CommandRunner.run!(Config.out, "rm #{tmpfile}")
       end
     end
 
     def prepare_cert_volume!
+      Config.info_out.puts 'Preparing certificate volume'
       create_if_volume_not_exist Config.config[:shared_names][:certs]
       return unless Config.config[:cert_source]
 
@@ -546,19 +571,7 @@ module Heighliner
       ].each do |file_ext|
         copy_keyfile("#{http_suffix}.#{file_ext}")
       end
-    end
-
-    def selenium_node_image
-      return ENV['OVERRIDE_SELENIUM_NODE_IMAGE'] unless ENV['OVERRIDE_SELENIUM_NODE_IMAGE'].nil?
-
-      if RUBY_PLATFORM.start_with?('arm64') || RUBY_PLATFORM.start_with?('aarch64')
-        # use the seleniarm image because its more stable in arm procs
-        # somehow the x64 image does not do well under qemu under arm
-        return 'seleniarm/standalone-chromium'
-      end
-
-      # default to x64 image
-      'selenium/standalone-chrome-debug'
+      Config.info_out.puts 'Certificate loading complete'
     end
 
     def home_dir_loc
@@ -609,20 +622,6 @@ module Heighliner
         "
       )
 
-      start_chrome_container
-    end
-
-    def start_chrome_container
-      run_if_dead(
-        Config.config[:shared_names][:chrome],
-        "docker run -d
-          -p 5900:5900
-          --shm-size='2g'
-          --name #{Config.config[:shared_names][:chrome]}
-          --network #{Config.config[:networkname]}
-          --dns #{ip_of_container(Config.config[:shared_names][:dns])}
-          #{selenium_node_image}"
-      )
     end
 
     def ip_of_container(containername)
@@ -653,7 +652,9 @@ module Heighliner
     end
 
     def create_if_network_not_exist(net)
-      x = JSON.parse(`docker inspect #{net} 2>/dev/null`)
+      out = `docker inspect #{net} 2>/dev/null`
+      out = "[]" if out.strip.empty?
+      x = JSON.parse(out)
       return unless x.empty?
 
       CommandRunner.run! Config.out, "docker network create #{net}"

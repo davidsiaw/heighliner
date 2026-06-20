@@ -83,7 +83,7 @@ op read "op://Vault/Dev-Certs/chain" → lvh.me.chain.pem
 If your 1Password item uses different field names, you can customize them:
 
 ```sh
-heighliner set cert-1password-fields '{"key":"private-key","crt":"certificate","chain":"ca-bundle"}'
+heighliner set cert-1password-fields  '{\"key\":\"privkey\",\"crt\":\"fullchain\",\"chain.pem\":\"chain\"}'
 ```
 
 This tells Heighliner to read:
