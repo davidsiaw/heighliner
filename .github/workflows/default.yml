@@ -1,47 +1,46 @@
----
 name: default
-jobs:
-  rspec:
-    container:
-      image: ruby:3.0
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/cache@v1
-      with:
-        path: vendor/bundle
-        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-        restore-keys: ${{ runner.os }}-gems-
-    - name: setup
-      run: |-
-        ruby -v
-        which ruby
-        gem install bundler --no-document
-        bundle config path vendor/bundle
-        bundle install --jobs 4
-    - name: script
-      run: bundle exec rspec
-  rubocop:
-    container:
-      image: ruby:3.0
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/cache@v1
-      with:
-        path: vendor/bundle
-        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-        restore-keys: ${{ runner.os }}-gems-
-    - name: setup
-      run: |-
-        ruby -v
-        which ruby
-        gem install bundler --no-document
-        bundle config path vendor/bundle
-        bundle install --jobs 4
-    - name: script
-      run: bundle exec rubocop
+
 'on':
   push:
     branches:
     - '*'
+
+permissions:
+  contents: read
+
+jobs:
+  rspec:
+    strategy:
+      fail-fast: true
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+        ruby:
+          - '3.4'
+          - '4.0'
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v7
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+        bundler-cache: true
+    - name: Run rspec
+      run: bundle exec rspec
+
+  rubocop:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.4'
+        bundler-cache: true
+    - uses: reviewdog/action-rubocop@fcb74ba274da10b18e038d0bcddaae3518739634
+      with:
+        reporter: github-pr-check
+        skip_install: true
+        use_bundler: true
+        only_changed: true
+        fail_level: any

@@ -1,24 +1,26 @@
----
 name: docker
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    -
-      name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: degicadev
-        password: ${{ secrets.DOCKERHUB_PAT }}
-    - name: setup
-      run: |-
-        docker build . -t davidsiaw/heighliner:latest
-        docker push davidsiaw/heighliner:latest
-        docker build . -t davidsiaw/heighliner:`bin/version`
-        docker push davidsiaw/heighliner:`bin/version`
 
 'on':
   push:
     branches:
     - 'master'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - name: Login to Docker Hub
+      uses: docker/login-action@v4
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PAT }}
+    - name: Build and push
+      run: |
+        docker build . -t davidsiaw/heighliner:latest
+        docker push davidsiaw/heighliner:latest
+        docker build . -t davidsiaw/heighliner:`bin/version`
+        docker push davidsiaw/heighliner:`bin/version`
