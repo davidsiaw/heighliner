@@ -1,0 +1,5 @@
+dockerfile "Dockerfile"
+
+app_params "-e RACK_ENV=development"
+
+expose "4567"

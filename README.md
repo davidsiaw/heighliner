@@ -112,6 +112,12 @@ open http://myapp.lvh.me
 
 And enjoy previewing your app!
 
+## Examples
+
+See the [examples](examples/) directory for starter projects:
+
+- [simple](examples/simple/) — a minimal Sinatra + Puma app
+
 ## More documentation
 
 You can find even more documentation in https://davidsiaw.github.io/heighliner.
