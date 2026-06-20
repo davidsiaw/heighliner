@@ -23,7 +23,7 @@ RUN curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
 
 
 ADD lib/heighliner/version.rb /app/lib/heighliner/version.rb
-ADD Gemfile Gemfile.lock heighliner.gemspec Rakefile /app/
+ADD Gemfile heighliner.gemspec Rakefile /app/
 RUN cd /app/ && bundle install
 
 ADD bin /app/bin

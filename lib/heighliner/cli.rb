@@ -574,6 +574,19 @@ module Heighliner
       Config.info_out.puts 'Certificate loading complete'
     end
 
+    def selenium_node_image
+      return ENV['OVERRIDE_SELENIUM_NODE_IMAGE'] unless ENV['OVERRIDE_SELENIUM_NODE_IMAGE'].nil?
+
+      if RUBY_PLATFORM.start_with?('arm64') || RUBY_PLATFORM.start_with?('aarch64')
+        # use the seleniarm image because its more stable in arm procs
+        # somehow the x64 image does not do well under qemu under arm
+        return 'seleniarm/standalone-chromium'
+      end
+
+      # default to x64 image
+      'selenium/standalone-chrome-debug'
+    end
+
     def home_dir_loc
       return ENV['_HEIGHLINER_USER_HOME'] if ENV['_HEIGHLINER_POS'] == 'docker'
 
@@ -622,6 +635,20 @@ module Heighliner
         "
       )
 
+      start_chrome_container
+    end
+
+    def start_chrome_container
+      run_if_dead(
+        Config.config[:shared_names][:chrome],
+        "docker run -d
+          -p 5900:5900
+          --shm-size='2g'
+          --name #{Config.config[:shared_names][:chrome]}
+          --network #{Config.config[:networkname]}
+          --dns #{ip_of_container(Config.config[:shared_names][:dns])}
+          #{selenium_node_image}"
+      )
     end
 
     def ip_of_container(containername)
