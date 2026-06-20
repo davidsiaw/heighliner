@@ -3,7 +3,7 @@ name: docker
 'on':
   push:
     branches:
-    - 'master'
+    - '*'
 
 permissions:
   contents: read
@@ -22,17 +22,33 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PAT }}
+    - name: Build and push (branch)
+      run: |
+        docker buildx build \
+          --platform linux/amd64,linux/arm64 \
+          -t davidsiaw/heighliner:branch-${{ github.ref_name }} \
+          --cache-from type=gha \
+          --cache-to type=gha,mode=max \
+          --push \
+          .
     - name: Build and push (latest)
+      if: github.ref == 'refs/heads/master'
       run: |
         docker buildx build \
           --platform linux/amd64,linux/arm64 \
           -t davidsiaw/heighliner:latest \
+          --cache-from type=gha \
+          --cache-to type=gha,mode=max \
           --push \
           .
+    # bin/version reads the gem version (e.g. 1.2.3) so we get a pinned, reproducible tag alongside latest
     - name: Build and push (version tag)
+      if: github.ref == 'refs/heads/master'
       run: |
         docker buildx build \
           --platform linux/amd64,linux/arm64 \
           -t davidsiaw/heighliner:$(bin/version) \
+          --cache-from type=gha \
+          --cache-to type=gha,mode=max \
           --push \
           .
