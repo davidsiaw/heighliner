@@ -50,5 +50,4 @@ DEPENDENCIES
   redcarpet
   weaver (~> 0.8.10)
 
-BUNDLED WITH
-   2.1.2
+
