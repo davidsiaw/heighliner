@@ -22,7 +22,7 @@ jobs:
         bundler-cache: true
         working-directory: docs
     - name: Build documentation
-      run: bundle exec weaver build
+      run: bundle exec weaver build --root=https://davidsiaw.github.io/heighliner/
       working-directory: docs
     - name: Clean up build artifacts
       run: rm -rf docs/build/js/MathJax
