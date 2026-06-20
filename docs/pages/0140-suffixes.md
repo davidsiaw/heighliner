@@ -43,8 +43,7 @@ As preparation you need to generate [HTTPS certificates](https://gist.github.com
 Hint: you can create the `.chain.pem` file by going
 
 ```
-cat lvh.me.crt >> lvh.me.key
-cat lvh.me.crt >> lvh.me.crt
+cat lvh.me.key lvh.me.crt > lvh.me.chain.pem
 ```
 
 Remember to trust your certificates! Otherwise your browser will give you an error (if it isn't dodgy).
@@ -78,6 +77,7 @@ And your apps will be all `envname.local.aweso.me`
 You will need to run
 
 ```sh
+heighliner down
 heighliner shutdown
 ```
 
@@ -88,3 +88,5 @@ heighliner up
 ```
 
 Again for changes to take effect.
+
+> **Note:** `heighliner shutdown` only stops the shared infrastructure containers (nginx, DNS, Chrome). It does not stop your app containers — use `heighliner down` for that.

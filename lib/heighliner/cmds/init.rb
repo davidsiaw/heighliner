@@ -3,17 +3,18 @@
 module Heighliner
   module Cmds
     class Init < Cli
-      # TODO: Add explanation for the Already initialized error.
       def usage
         <<~EOS
-          Initializes a Heighliner environment and assigns ports for it in \`~/.heighliner/.config.yml\`. When running \`heighliner up\` later the directory \`~/.heighliner/databases/<ENV_NAME>\`  will get created.
+          Initializes a Heighliner environment and assigns ports for it in \`~/.heighliner/config.yml\`. When running \`heighliner up\` later the directory \`~/.heighliner/databases/<ENV_NAME>\` will get created.
+
+          If the current directory is already initialized, you will get an error telling you the existing environment name.
 
           USAGE: heighliner init ENV_NAME
         EOS
       end
 
       def execute(_opts)
-        return Optimist.die "Already initialized as #{envname}" if envname
+        return Optimist.die "Already initialized as #{envname}. Use 'heighliner deinit' to remove this environment first." if envname
 
         name = ARGV.shift
         return Optimist.die 'Needs environment name' if name.nil?

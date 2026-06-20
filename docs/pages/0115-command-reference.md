@@ -154,7 +154,7 @@ This command shuts down all the containers started by Heighliner.
 
 ## `heighliner deinit`
 
-This command removes the current environment from the heighliner configuration, and essentially undoes the effects of the `heighliner init` command.
+This command removes the current environment from `~/.heighliner/config.yml`. This also runs `heighliner down` to stop and delete your app containers and database volume. It does **not** delete the `~/.heighliner/databases/<ENV_NAME>` directory.
 
 ---
 
@@ -185,7 +185,9 @@ This command loads the saved state of the database of an application (if one exi
 
 ## `heighliner db_reset`
 
-This command re-runs the command defined in the `db_reset_command` in the [Steerfile](/0120-the-steerfile).
+This command shuts down the database docker container, *replaces* the database with the default database image stored at `~/.heighliner/<ENV_NAME>/<current_github_branch_name>/default.tar.bz` and brings the container up again.
+
+This is the same as running `heighliner db_load` with no arguments.
 
 ---
 
@@ -203,6 +205,8 @@ Valid `<key>` parameters are:
 
 - `http-suffix` - Sets the domain suffix for the reverse proxy to use (defaults to lvh.me)
 - `cert-url`    - Sets up a URL from which HTTPS certificates can be downloaded.
+- `cert-folder` - Sets up a folder from which HTTPS certificates can be copied.
+- `help-https`  - Shows the HTTPS notes.
 
 For example you can go
 

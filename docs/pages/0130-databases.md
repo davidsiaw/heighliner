@@ -34,7 +34,7 @@ dockerfile 'Dockerfile'
 
 plugin :database
 
-def_db :mysql: {
+def_db mysql: {
   version: '8.0',
   root_password: 'secret'
 }

@@ -93,7 +93,8 @@ db_reset_command 'rake db:reset'
 ```ruby
 # Default settings
 {
-  image: 'alpine',
+  image: 'none',
+  platform: '',
   port: 1234,
   data_dir: '/tmp/data',
   params: '',

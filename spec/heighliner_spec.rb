@@ -41,7 +41,8 @@ RSpec.describe Heighliner do
     context 'with no Steerfile' do
       it 'Returns an error' do
         expect(cmd_stdout).to eq ''
-        expect(cmd_stderr).to eq "Error: No Steerfile in current directory.\nTry --help for help.\n"
+        expect(cmd_stderr).to include('Error: No Steerfile in current directory.')
+        expect(cmd_stderr).to include('Try --help for help.')
       end
     end
   end

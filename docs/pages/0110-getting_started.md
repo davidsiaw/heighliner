@@ -84,7 +84,7 @@ This allows Heighliner to set up some data required to start your environment. T
 heighliner init hello
 ```
 
-In this case, we call our environment `hello`. This is also important as it will be the prefix for the DNS name that will be used for this. In this case by default, setting the environment name to `hello` makes the URL for the app `http://hello.lvm.me`
+In this case, we call our environment `hello`. This is also important as it will be the prefix for the DNS name that will be used for this. In this case by default, setting the environment name to `hello` makes the URL for the app `http://hello.lvh.me`
 
 Having done that, we can start up the program using:
 
@@ -92,7 +92,7 @@ Having done that, we can start up the program using:
 heighliner up -av
 ```
 
-And you should be able to go to `http://hello.lvm.me` and find a page that displays the text `Hello Heighliner`
+And you should be able to go to `http://hello.lvh.me` and find a page that displays the text `Hello Heighliner`
 
 ## That's all, folks!
 

@@ -5,7 +5,7 @@ module Heighliner
     class Down < Cli
       def usage
         <<~EOS
-          Shuts down and *deletes* the containers that were started using \`heighliner up\`.
+          Stops and removes your app and database containers, and deletes the database volume. This does **not** affect the shared infrastructure (nginx, DNS, Chrome) — use \`heighliner shutdown\` for that.
 
           USAGE: heighliner down
         EOS

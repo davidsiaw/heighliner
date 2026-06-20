@@ -5,9 +5,9 @@ module Heighliner
     class Deinit < Cli
       def usage
         <<~EOS
-          Removes the Heighliner environment from \`~/.heighliner/.config.yml\`. This however does not delete the \`~/.heighliner/databases/<ENV_NAME>\` directory.
+          Removes the Heighliner environment from \`~/.heighliner/config.yml\`. This also runs \`heighliner down\` to stop and delete your app containers and database volume. It does not delete the \`~/.heighliner/databases/<ENV_NAME>\` directory.
 
-          USAGE: heighliner init ENV_NAME
+          USAGE: heighliner deinit
         EOS
       end
 

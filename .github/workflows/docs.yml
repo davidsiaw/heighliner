@@ -1,41 +1,45 @@
----
 name: docs
-jobs:
-  build:
-    container:
-      image: ruby:2.7
-      env:
-        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/cache@v1
-      with:
-        path: vendor/bundle
-        key: ${{ runner.os }}-docgems-${{ hashFiles('**/Gemfile.lock') }}
-        restore-keys: ${{ runner.os }}-docgems-
-    - name: setup
-      run: |
-        cd docs
-        bundle install
-    - name: setkeys
-      uses: shimataro/ssh-key-action@v2
-      with:
-        key: ${{ secrets.DEPLOY_KEY }}
-        known_hosts: ${{ secrets.KNOWN_HOSTS }}
-    - name: build
-      shell: bash
-      run: |
-        if [[ ${GITHUB_REF##*/} == 'master' ]]; then
-            ROOT_DIR=/
-        else
-            ROOT_DIR=/branches/${GITHUB_REF##*/}
-        fi
-        cd docs
-        git config --global user.email "874280+davidsiaw@users.noreply.github.com"
-        git config --global user.name "davidsiaw+heighlinerdocs"
-        ROOT_DIR=$ROOT_DIR bash deploy-docs.sh
+
 'on':
   push:
     branches:
-    - '*'
+    - master
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v6
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.4'
+        bundler-cache: true
+        working-directory: docs
+    - name: Build documentation
+      run: bundle exec weaver build
+      working-directory: docs
+    - name: Clean up build artifacts
+      run: rm -rf docs/build/js/MathJax
+    - name: Upload documentation
+      id: upload
+      uses: actions/upload-pages-artifact@v5
+      with:
+        path: docs/build
+
+  deploy-docs:
+    needs: build-docs
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.upload.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
