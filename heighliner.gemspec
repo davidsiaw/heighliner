@@ -8,11 +8,11 @@ Gem::Specification.new do |spec|
   spec.name          = 'heighliner'
   spec.version       = Heighliner::VERSION
   spec.authors       = ['David Siaw']
-  spec.email         = ['dsiaw@degica.com']
+  spec.email         = ['874280+davidsiaw@users.noreply.github.com']
 
-  spec.summary       = 'Manage your monsters'
-  spec.description   = 'Monster management system'
-  spec.homepage      = 'https://github.com/heighliner'
+  spec.summary       = 'Docker Application Simplification Tool'
+  spec.description   = 'Docker Application Simplification Tool'
+  spec.homepage      = 'https://github.com/davidsiaw/heighliner'
   spec.license       = 'MIT'
 
   spec.required_ruby_version = '>= 2.5.8'

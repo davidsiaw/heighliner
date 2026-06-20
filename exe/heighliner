@@ -29,7 +29,7 @@ parser = Optimist::Parser.new do
   banner <<~BANNER
     #{version}
 
-    Heighliner is a tool to make development a lot easier by defining how an application starts using a \`Steerfile\` in the source code's root directory.
+    Heighliner is a tool to make development a lot easier by defining how an application starts using a Steerfile in the source code's root directory.g
 
     Prerequisites
     =============

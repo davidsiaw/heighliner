@@ -26,7 +26,6 @@ module Heighliner
           envs: {},
           networkname: 'heighliner_net',
           shared_names: {
-            redis: 'heighliner-redis',
             nginx: 'heighliner-nginx',
             chrome: 'heighliner-chrome',
             dns: 'heighliner-dns',
@@ -39,13 +38,26 @@ module Heighliner
         load_config
 
         if use_steerfile
-          @steerfile = Steerfile.new("#{@work_dir}/Steerfile")
-          alt_steerfile = "#{ENV['HOME']}/steerfiles/Steerfile.#{@config[:envnames][work_dir]}"
-          @steerfile = Steerfile.new(alt_steerfile) if File.exist?(alt_steerfile)
+          POSSIBLE_STEERFILES.each do |x|
+            @fname = x if File.exist?(x)
+          end
+
+          Optimist.die <<~ERROR if @fname.nil?
+            No Steerfile in current directory.
+            Possible names are #{POSSIBLE_STEERFILES.join(', ')}"
+          ERROR
+
+          @steerfile = Steerfile.new("#{@work_dir}/#{@fname}")
         end
 
         @config
       end
+
+      POSSIBLE_STEERFILES = %w[
+        Steerfile
+        Heighliner.config
+        heighliner.config
+      ]
 
       def always_verbose?
         @config[:always_verbose]

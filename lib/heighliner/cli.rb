@@ -558,13 +558,6 @@ module Heighliner
         prepare_cert_volume!
       end
       run_if_dead(
-        Config.config[:shared_names][:redis],
-        "docker run -d
-          --name #{Config.config[:shared_names][:redis]}
-          --network #{Config.config[:networkname]}
-          redis:7-alpine"
-      )
-      run_if_dead(
         Config.config[:shared_names][:nginx],
         "docker run -d
           -p 80:80
