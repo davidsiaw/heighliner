@@ -4,7 +4,7 @@ title: The Steerfile
 
 ## The Steerfile
 
-The Steerfile a file that you add to your docker-based application. The most basic form a Steerfile can take has already been shown in the [Getting Started](/0110-getting_started) page:
+The Steerfile is a file that you add to your docker-based application. The most basic form a Steerfile can take has already been shown in the [Getting Started](/0110-getting_started) page:
 
 ```
 dockerfile 'Dockerfile'
@@ -36,19 +36,38 @@ See [plugins](/0510-plugins) to find available plugins and their usage
 dockerfile 'Dockerfile'
 ```
 
-- `service` - This command is optional. Use it to define additional containers that should be set up along with your environment,. You can use it multiple times to define multiple services. It takes multiple parameters, a name parameter which is required and optional parameters.
+- `service` - This command is optional. Use it to define additional containers that should be set up along with your environment. You can use it multiple times to define multiple services. It takes a name parameter (required) and optional parameters: `image`, `command`, `binds`, `env`.
 
 ```ruby
 # example that sets up a redis server for your app
 service 'redis'
 ```
 
-The following parameters are allowed for this command:
-- image
+Parameters:
+
+- `image` — Docker image to use (defaults to the name)
 
 ```ruby
 # example that tells it to use the redis server with the alpine tag from 'myrepo'
 service 'redis', image: 'myrepo/redis:alpine'
+```
+
+- `command` — Command to run inside the container
+
+```ruby
+service 'redis', command: 'redis-server --appendonly yes'
+```
+
+- `binds` — Volume binds (hash of host_path: container_path)
+
+```ruby
+service 'redis', binds: { '/data/redis' => '/data' }
+```
+
+- `env` — Environment variables (hash of key: value)
+
+```ruby
+service 'redis', env: { 'REDIS_PASSWORD' => 'secret' }
 ```
 
 - `attach_mount` - Takes 2 parameters: The first parameter is the relative path of a folder or a file outside the container and the second parameter is its absolute path inside the container. This is only used when `heighliner attach` or `heighliner up -a` is used. This will mount the file or folder inside the container and sync their contents. If the file you specified does not exist, Heighliner will create a folder where you specify it and then mount that folder inside the container. You can specify as many of these as you want.
@@ -86,9 +105,13 @@ type :http
 db_reset_command 'rake db:reset'
 ```
 
-- `db` - Takes 1 parameter in the form of a hash. The default value of the hash is as follows:
+- `force_platform` - Forces the Docker platform for all containers (e.g., `linux/amd64` on Apple Silicon).
 
-(You do not have to use this strictly, see the Database [plugins](/0510-plugins) to see an easier way to include MySQL and Postgres in your environment)
+```ruby
+force_platform 'linux/amd64'
+```
+
+- `db` - Takes 1 parameter in the form of a hash
 
 ```ruby
 # Default settings
@@ -119,5 +142,5 @@ where `<app name>` is replaced with the name you provided when calling `heighlin
 If Heighliner detects an alternative Steerfile, it will use it instead of the Project root one. Some things to watch out for:
 
 - Of course, your app may behave differently if you change your environment from the project's default.
-- The `dockerfile` declaration is still relative to the project root. If you want to use a custom Dockerfile as well, you need to specify the its full path in the Steerfile.
+- The `dockerfile` declaration is still relative to the project root. If you want to use a custom Dockerfile as well, you need to specify its full path in the Steerfile.
 - If the project's Steerfile or Dockerfile changes, you'll have to update your custom ones manually.

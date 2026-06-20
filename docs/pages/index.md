@@ -26,6 +26,6 @@ Those of us who package our webapps in a docker image and deploy it to a website
 
 Alas, is it truly so? A large number of us developers also simply run our webservers locally, from the commandline on our own machines, and only when we test pushing our code do we realize we forgot to add to the Dockerfile what we `brew install`ed or `apt install`'ed on our PCs, forcing us to redo this work again but against our staging environment!
 
-Heighliner is writted (to our best effort) in a way to allow you to run that very container that you built in a containerized environment for you to test it.
+Heighliner is written (to our best effort) in a way to allow you to run that very container that you built, in a containerized environment, for you to test it.
 
 It does not matter what language your webapp is written in, or what frameworks or runtimes it uses, as long as you package it in Docker, it will work with Heighliner.

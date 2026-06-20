@@ -4,7 +4,7 @@ title: Suffixes
 
 ## Suffixes in Heighliner
 
-By default, Heighliner starts up an NGINX server on port 80 and 443 on your computer as a reverse proxy to all the applications started on it. It also uses a by default the `lvh.me` suffix. 
+By default, Heighliner starts up an NGINX server on port 80 and 443 on your computer as a reverse proxy to all the applications started on it. It also uses the `lvh.me` suffix by default. 
 
 This means that if you start an app on Heighliner with the environment name `foo` then the URL on your computer will be `http://foo.lvh.me`
 

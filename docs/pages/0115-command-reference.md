@@ -146,9 +146,21 @@ Try --help for help.
 
 ---
 
+## `heighliner logs`
+
+Continuously monitors the application container's logs.
+
+```
+heighliner logs
+```
+
+---
+
 ## `heighliner shutdown`
 
-This command shuts down all the containers started by Heighliner.
+This command shuts down the shared infrastructure containers (nginx reverse proxy, DNS resolver, Selenium Chrome). It does **not** stop your app or database containers — use `heighliner down` for that.
+
+> **Note:** This command is destructive — it removes the shared Docker network and certs volume, which will affect all Heighliner environments on this machine.
 
 ---
 
