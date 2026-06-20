@@ -1,6 +1,10 @@
 # Heighliner
 
-Heighliner is a tool that allows you to describe your web application using a Steerfile. This removes the guesswork of setting up a web application for development and gives teams an edge by allowing new developers on a system to hit the ground running, as well as propagate any changes in settings to other developers via source code. The Steerfile gives you an immense amount of control on how you want your application set up.
+Heighliner is a tool that allows you to describe your web application using a Steerfile.
+
+This removes the guesswork of setting up a web application for development and gives teams an edge by allowing new developers on a system to hit the ground running, as well as propagate any changes in settings to other developers via source code.
+
+The Steerfile gives you an immense amount of control on how you want your application set up.
 
 # Dependencies
 
@@ -30,27 +34,20 @@ Confirm it is working by running
 heighliner -h
 ```
 
-## Installation (Development)
+## Installation (Plain)
 
-This is only required if you want to add features to heighliner
+Execute:
 
-1. Download and setup [Docker](https://www.docker.com/get-started)
-
-2. Add this line to your application's Gemfile:
-
-```ruby
-gem 'heighliner', git: "https://github.com/davidsiaw/heighliner"
+```
+$ bundle install
 ```
 
-3. Execute:
+Or install it yourself as:
 
-    ```$ bundle```
-
-    Or install it yourself as:
-
-        $ gem install specific_install
-        $ gem specific_install -l https://github.com/davidsiaw/heighliner
-
+```
+$ gem install specific_install
+$ gem specific_install -l https://github.com/davidsiaw/heighliner
+```
 
 ## Building the docker container
 
@@ -133,6 +130,44 @@ bundle exec weaver
 After checking out the repo, run `bundle install` to install dependencies. Then, run `rake spec` to run the tests.
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+
+### Using Heighliner with docker
+
+You can use heighliner without ruby. if you have docker installed use the following aliases in your .bashrc or .zshrc
+
+**Normal way:**
+
+```
+alias heighliner='docker run --rm -ti \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v $HOME/.heighliner:/root/.heighliner \
+  -v `pwd`:`pwd` \
+  -e _HEIGHLINER_USER_HOME=$HOME \
+  -e _HEIGHLINER_POS=docker \
+  -e CONTEXT_DIR="`pwd`" \
+  davidsiaw/heighliner'
+```
+
+
+**With certificates stored in 1password:**
+
+If you have your local dev SSL certificates stored in 1password, but you want to use the docker version you can use them this way.
+
+if you put your personal service account token in 1password you can just read them out like this.
+
+```
+alias heighliner='docker run --rm -ti \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v $HOME/.heighliner:/root/.heighliner \
+  -v `pwd`:`pwd` \
+  -e _HEIGHLINER_USER_HOME=$HOME \
+  -e _HEIGHLINER_POS=docker \
+  -e CONTEXT_DIR="`pwd`" \
+  -e OP_SERVICE_ACCOUNT_TOKEN=`op read op://Private/local-dev/credential` \
+  davidsiaw/heighliner'
+```
+
+Create the token in 1Password web app: Integrations → Developer Tools → Service Accounts.
 
 ## Contributing
 
