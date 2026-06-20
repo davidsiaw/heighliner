@@ -57,7 +57,7 @@ module Heighliner
         Steerfile
         Heighliner.config
         heighliner.config
-      ]
+      ].freeze
 
       def always_verbose?
         @config[:always_verbose]

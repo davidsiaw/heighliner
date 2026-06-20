@@ -4,7 +4,8 @@ module Heighliner
   module Cmds
     class Up < Cli
       option :attach,
-             "Bind mount the current source code directory in the app container (as the \`heighliner attach\` command would)", short: '-a'
+             'Bind mount the current source code directory in the app container',
+             short: '-a'
 
       def usage
         <<~EOS

@@ -198,11 +198,11 @@ RSpec.describe Heighliner::Steerfile do
       it 'adds a service' do
         steerfile = Heighliner::Steerfile.new('Steerfile')
         expect(steerfile.services).to eq('santaclaus' => {
-                                            image: 'santaclaus',
-                                            command: nil,
-                                            binds: {},
-                                            env: {}
-                                          })
+                                           image: 'santaclaus',
+                                           command: nil,
+                                           binds: {},
+                                           env: {}
+                                         })
       end
     end
 
@@ -212,11 +212,11 @@ RSpec.describe Heighliner::Steerfile do
       it 'adds a service with the image name' do
         steerfile = Heighliner::Steerfile.new('Steerfile')
         expect(steerfile.services).to eq('santaclaus' => {
-                                            image: 'northpole/santaclaus',
-                                            command: nil,
-                                            binds: {},
-                                            env: {}
-                                          })
+                                           image: 'northpole/santaclaus',
+                                           command: nil,
+                                           binds: {},
+                                           env: {}
+                                         })
       end
     end
 
@@ -226,11 +226,11 @@ RSpec.describe Heighliner::Steerfile do
       it 'adds a service with the image name' do
         steerfile = Heighliner::Steerfile.new('Steerfile')
         expect(steerfile.services).to eq('santaclaus' => {
-                                            image: 'northpole/santaclaus:last_christmas',
-                                            command: nil,
-                                            binds: {},
-                                            env: {}
-                                          })
+                                           image: 'northpole/santaclaus:last_christmas',
+                                           command: nil,
+                                           binds: {},
+                                           env: {}
+                                         })
       end
     end
   end

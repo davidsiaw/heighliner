@@ -107,7 +107,6 @@ module Heighliner
                 command: nil,
                 binds: {},
                 env: {})
-
       raise "duplicate service #{name.inspect}" if @services.key?(name)
 
       @services[name] = {

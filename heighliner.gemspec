@@ -10,16 +10,12 @@ Gem::Specification.new do |spec|
   spec.authors       = ['David Siaw']
   spec.email         = ['874280+davidsiaw@users.noreply.github.com']
 
-  spec.summary       = 'Docker Application Simplification Tool'
-  spec.description   = 'Docker Application Simplification Tool'
+  spec.summary = spec.description = 'Docker Application Simplification Tool'
   spec.homepage      = 'https://github.com/davidsiaw/heighliner'
   spec.license       = 'MIT'
 
   spec.required_ruby_version = '>= 2.5.8'
 
-  # Prevent pushing this gem to RubyGems.org. To allow pushes either set the
-  # 'allowed_push_host' to allow pushing to a single host or delete this section
-  # to allow pushing to any host.
   if spec.respond_to?(:metadata)
     spec.metadata['allowed_push_host'] = 'https://rubygems.org'
   else
@@ -39,8 +35,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'aruba-rspec'
   spec.add_development_dependency 'factory_bot', '~> 4.0'
   spec.add_development_dependency 'observer'
-  spec.add_development_dependency 'pstore'
   spec.add_development_dependency 'pry-byebug'
+  spec.add_development_dependency 'pstore'
   spec.add_development_dependency 'rake', '~> 13.0'
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'rubocop'

@@ -21,6 +21,13 @@ Gemspec/RequiredRubyVersion:
   Exclude:
     - 'heighliner.gemspec'
 
+# Offense count: 1
+# Configuration parameters: CountComments, CountAsOne, AllowedMethods, AllowedPatterns.
+# AllowedMethods: refine
+Metrics/BlockLength:
+  Exclude:
+    - 'heighliner.gemspec'
+
 # Offense count: 2
 # This cop supports safe autocorrection (--autocorrect).
 Layout/EmptyLinesAroundMethodBody:
@@ -40,15 +47,10 @@ Metrics/AbcSize:
   Max: 65
 
 # Offense count: 1
-# Configuration parameters: CountComments, CountAsOne, AllowedMethods, AllowedPatterns.
-# AllowedMethods: refine
-Metrics/BlockLength:
-  Max: 28
-
-# Offense count: 1
 # Configuration parameters: CountComments, CountAsOne.
 Metrics/ClassLength:
-  Max: 490
+  Exclude:
+    - 'lib/heighliner/cli.rb'
 
 # Offense count: 1
 # Configuration parameters: AllowedMethods, AllowedPatterns.

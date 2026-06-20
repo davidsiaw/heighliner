@@ -62,6 +62,40 @@ https://internal-site.com/dev-certificates/lvh.me.key
 https://internal-site.com/dev-certificates/lvh.me.chain.pem
 ```
 
+### 1Password
+
+If you store your certificates in 1Password, you can use the `cert-1password` option:
+
+```sh
+heighliner set cert-1password Vault/Item
+```
+
+This tells Heighliner to look for the certificate fields in the specified 1Password item. By default, the field names should match the file extensions (e.g., `key`, `crt`, `chain`). For example, if your item is `Vault/Dev-Certs`, Heighliner will read:
+
+```
+op read "op://Vault/Dev-Certs/key"   → lvh.me.key
+op read "op://Vault/Dev-Certs/crt"   → lvh.me.crt
+op read "op://Vault/Dev-Certs/chain" → lvh.me.chain.pem
+```
+
+#### Custom field names
+
+If your 1Password item uses different field names, you can customize them:
+
+```sh
+heighliner set cert-1password-fields '{"key":"private-key","crt":"certificate","chain":"ca-bundle"}'
+```
+
+This tells Heighliner to read:
+
+```
+op read "op://Vault/Dev-Certs/private-key"   → lvh.me.key
+op read "op://Vault/Dev-Certs/certificate"   → lvh.me.crt
+op read "op://Vault/Dev-Certs/ca-bundle"     → lvh.me.chain.pem
+```
+
+Make sure the `op` CLI is installed and authenticated on your machine.
+
 #### HTTP/HTTPS Your own domain
 
 If you have a fancy setup where you have your own localhost domain (like local.aweso.me) and you can generate your own SSL certificates (yes, very fancy) then you can set the suffix of your domain like this:

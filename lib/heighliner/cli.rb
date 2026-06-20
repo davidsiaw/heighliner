@@ -513,6 +513,22 @@ module Heighliner
           -v #{Config.config[:shared_names][:certs]}:/certs
           alpine wget #{Config.config[:cert_source][:url]}/#{file}
             -O /certs/#{file}"
+
+      elsif Config.config[:cert_source]['1password']
+        item = Config.config[:cert_source]['1password']
+        field = file.sub(/^#{http_suffix}\./, '')
+        tmpfile = "/tmp/heighliner-cert-#{file}"
+        CommandRunner.run! Config.out, "op read \"op://#{item}/#{field}\" > #{tmpfile}"
+        unless File.exist?(tmpfile) && File.size(tmpfile).positive?
+          raise Heighliner::Error,
+                "1Password field '#{field}' not found in item '#{item}'"
+        end
+
+        CommandRunner.run! Config.out, "docker run --rm
+          -v #{Config.config[:shared_names][:certs]}:/certs
+          -v #{tmpfile}:/cert_source
+          alpine cp /cert_source /certs/#{file}"
+        FileUtils.rm(tmpfile)
       end
     end
 
@@ -590,6 +606,10 @@ module Heighliner
         "
       )
 
+      start_chrome_container
+    end
+
+    def start_chrome_container
       run_if_dead(
         Config.config[:shared_names][:chrome],
         "docker run -d
