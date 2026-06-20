@@ -6,7 +6,10 @@
 /pkg/
 /spec/reports/
 /tmp/
+/docs/build/
 
 # rspec failure tracking
 .rspec_status
 Gemfile.lock
+.bundler
+.bundle
