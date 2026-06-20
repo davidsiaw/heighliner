@@ -37,7 +37,7 @@ jobs:
       with:
         ruby-version: '3.4'
         bundler-cache: true
-    - uses: reviewdog/action-rubocop@fcb74ba274da10b18e038d0bcddaae3518739634
+    - uses: reviewdog/action-rubocop@v2.22.0
       with:
         reporter: github-pr-check
         skip_install: true
