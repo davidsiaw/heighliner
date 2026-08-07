@@ -151,6 +151,9 @@ alias heighliner='docker run --rm -ti \
   -e _HEIGHLINER_USER_HOME=$HOME \
   -e _HEIGHLINER_POS=docker \
   -e CONTEXT_DIR="`pwd`" \
+  -e GIT_CONFIG_COUNT=1 \
+  -e GIT_CONFIG_KEY_0=safe.directory \
+  -e GIT_CONFIG_VALUE_0="$PWD" \        
   davidsiaw/heighliner'
 ```
 
@@ -169,6 +172,9 @@ alias heighliner='docker run --rm -ti \
   -e _HEIGHLINER_USER_HOME=$HOME \
   -e _HEIGHLINER_POS=docker \
   -e CONTEXT_DIR="`pwd`" \
+  -e GIT_CONFIG_COUNT=1 \
+  -e GIT_CONFIG_KEY_0=safe.directory \
+  -e GIT_CONFIG_VALUE_0="$PWD" \        
   -e OP_SERVICE_ACCOUNT_TOKEN=`op read op://Private/local-dev/credential` \
   davidsiaw/heighliner'
 ```

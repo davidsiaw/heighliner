@@ -13,3 +13,5 @@
 Gemfile.lock
 .bundler
 .bundle
+# vendored, not part of the gem
+/crun.d/
