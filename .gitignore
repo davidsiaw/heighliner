@@ -15,3 +15,6 @@ Gemfile.lock
 .bundle
 # vendored, not part of the gem
 /crun.d/
+.pi-sessions/
+.pirag/
+spice/
