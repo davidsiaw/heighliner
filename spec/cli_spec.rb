@@ -47,6 +47,73 @@ RSpec.describe Heighliner::Steerfile do
     end
   end
 
+  describe '#network_exists?' do
+    it 'asks docker about a network, not a container' do
+      # `docker inspect NAME` searches containers and misses networks, so an
+      # existing network was reported absent and creation was attempted.
+      cli = Heighliner::Cli.new
+      allow(cli).to receive(:network_inspect_output).with('kaiser_net').and_return('[{"Name":"kaiser_net"}]')
+
+      expect(cli.send(:network_exists?, 'kaiser_net')).to be true
+    end
+
+    it 'treats empty output as absent' do
+      cli = Heighliner::Cli.new
+      allow(cli).to receive(:network_inspect_output).and_return('')
+
+      expect(cli.send(:network_exists?, 'kaiser_net')).to be false
+    end
+
+    it 'treats an empty json array as absent' do
+      cli = Heighliner::Cli.new
+      allow(cli).to receive(:network_inspect_output).and_return('[]')
+
+      expect(cli.send(:network_exists?, 'kaiser_net')).to be false
+    end
+
+    it 'assumes present on unparseable output rather than ending the command' do
+      cli = Heighliner::Cli.new
+      allow(cli).to receive(:network_inspect_output).and_return("WARNING: something\n[]garbage")
+
+      expect(cli.send(:network_exists?, 'kaiser_net')).to be true
+    end
+  end
+
+  describe '#create_if_network_not_exist' do
+    it 'does not create a network that already exists' do
+      cli = Heighliner::Cli.new
+      allow(cli).to receive(:network_exists?).with('kaiser_net').and_return(true)
+
+      expect(Heighliner::CommandRunner).not_to receive(:run)
+      cli.send(:create_if_network_not_exist, 'kaiser_net')
+    end
+
+    it 'creates a network that does not exist' do
+      cli = Heighliner::Cli.new
+      allow(cli).to receive(:network_exists?).with('kaiser_net').and_return(false, true)
+
+      expect(Heighliner::CommandRunner).to receive(:run).with(anything, 'docker network create kaiser_net')
+      cli.send(:create_if_network_not_exist, 'kaiser_net')
+    end
+
+    it 'tolerates a create that lost a race to another heighliner process' do
+      cli = Heighliner::Cli.new
+      allow(cli).to receive(:network_exists?).with('kaiser_net').and_return(false, true)
+      allow(Heighliner::CommandRunner).to receive(:run).and_return(1)
+
+      expect { cli.send(:create_if_network_not_exist, 'kaiser_net') }.not_to raise_error
+    end
+
+    it 'raises when the network is still missing after creating it' do
+      cli = Heighliner::Cli.new
+      allow(cli).to receive(:network_exists?).with('kaiser_net').and_return(false, false)
+      allow(Heighliner::CommandRunner).to receive(:run).and_return(1)
+
+      expect { cli.send(:create_if_network_not_exist, 'kaiser_net') }
+        .to raise_error(Heighliner::Error, /could not create docker network kaiser_net/)
+    end
+  end
+
   describe '#selenium_node_image' do
     it 'for x86 machines returns normal selenium' do
       cli = Heighliner::Cli.new

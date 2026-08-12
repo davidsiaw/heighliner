@@ -612,8 +612,6 @@ module Heighliner
     def ensure_setup
       ensure_env
 
-      setup if network.nil?
-
       create_if_network_not_exist Config.config[:networkname]
       if_container_dead Config.config[:shared_names][:nginx] do
         prepare_cert_volume!
@@ -631,8 +629,11 @@ module Heighliner
           jwilder/nginx-proxy"
       )
 
-      innerdnsconffile = "#{ENV['HOME']}/.heighliner/dnsconf"
-      outerdnsconffile = "#{home_dir_loc}/.heighliner/dnsconf"
+      # The config dir is ~/.kaiser on hosts upgraded from Kaiser, so derive the
+      # directory name instead of hardcoding .heighliner.
+      config_dir_name = File.basename(Config.config_dir)
+      innerdnsconffile = "#{Config.config_dir}/dnsconf"
+      outerdnsconffile = "#{home_dir_loc}/#{config_dir_name}/dnsconf"
       File.write(innerdnsconffile, <<~HOSTS)
         log-queries
         no-resolv
@@ -672,8 +673,20 @@ module Heighliner
       `docker inspect -f '{{#{networkname}}}' #{containername}`.chomp
     end
 
-    def network
-      `docker network inspect #{Config.config[:networkname]} 2>/dev/null`
+    def network_inspect_output(net)
+      `docker network inspect #{net} 2>/dev/null`
+    end
+
+    def network_exists?(net)
+      out = network_inspect_output(net)
+      return false if out.strip.empty?
+
+      !JSON.parse(out).empty?
+    rescue JSON::ParserError
+      # Unparseable output is not evidence the network is absent, and guessing
+      # "absent" is the expensive guess: creating an existing network exits 1 and
+      # kills the command. Assume present and let docker report a real problem.
+      true
     end
 
     def container_dead?(container)
@@ -695,12 +708,14 @@ module Heighliner
     end
 
     def create_if_network_not_exist(net)
-      out = `docker inspect #{net} 2>/dev/null`
-      out = '[]' if out.strip.empty?
-      x = JSON.parse(out)
-      return unless x.empty?
+      return if network_exists?(net)
 
-      CommandRunner.run! Config.out, "docker network create #{net}"
+      # Another heighliner process may create the network between the check and
+      # here, so a failure is not fatal by itself: re-check instead of raising.
+      CommandRunner.run Config.out, "docker network create #{net}"
+      return if network_exists?(net)
+
+      raise Heighliner::Error, "could not create docker network #{net}"
     end
 
     def run_if_dead(container, command)
