@@ -10,8 +10,10 @@ RSpec.describe Heighliner do
   let(:cmd) do
     Open3.popen3("#{Dir.pwd}/exe/heighliner #{args}")
   end
-  let(:cmd_stdout) { cmd[1].read }
-  let(:cmd_stderr) { cmd[2].read }
+  # The subprocess output is UTF-8 (usage strings contain em dashes), but the
+  # default external encoding depends on the environment's locale.
+  let(:cmd_stdout) { cmd[1].read.force_encoding('UTF-8') }
+  let(:cmd_stderr) { cmd[2].read.force_encoding('UTF-8') }
 
   shared_examples 'full help' do
     it 'prints the full help message' do

@@ -503,60 +503,76 @@ module Heighliner
 
     def copy_keyfile(file)
       Config.info_out.puts "Loading certificate file: #{file}"
-      if Config.config[:cert_source][:folder]
-        Config.info_out.puts "  Source: folder (#{Config.config[:cert_source][:folder]})"
-        CommandRunner.run! Config.out, "docker run --rm
-          -v #{Config.config[:shared_names][:certs]}:/certs
-          -v #{Config.config[:cert_source][:folder]}:/cert_source
-          alpine cp /cert_source/#{file} /certs/#{file}"
+      cert_source = Config.config[:cert_source]
 
-      elsif Config.config[:cert_source][:url]
-        Config.info_out.puts "  Source: URL (#{Config.config[:cert_source][:url]}/#{file})"
-        CommandRunner.run! Config.out, "docker run --rm
-          -v #{Config.config[:shared_names][:certs]}:/certs
-          alpine wget #{Config.config[:cert_source][:url]}/#{file}
-            -O /certs/#{file}"
-
-      elsif Config.config[:cert_source][:"1password"]
-        item = Config.config[:cert_source][:"1password"]
-        origfield = file.sub(/^#{http_suffix}\./, '')
-        token = ENV['OP_SERVICE_ACCOUNT_TOKEN']
-
-        field = origfield
-        if Config.config[:cert_source]["1password-fields"]
-          field = Config.config[:cert_source]["1password-fields"][origfield]
-        end
-
-        raise Heighliner::Error, 'OP_SERVICE_ACCOUNT_TOKEN is not set' unless token
-
-        Config.info_out.puts "  Source: 1Password (item: #{item}, field: #{field} (#{origfield}) )"
-
-        # take it out
-        certstoredir = "#{ENV['CONTEXT_DIR']}/.tmp.certstore"
-        tmpfile = "#{certstoredir}/#{file}"
-        CommandRunner.run!(Config.out, "mkdir -p #{certstoredir}")
-        CommandRunner.run!(Config.out, "op read \"op://#{item}/#{field}\" > #{tmpfile}")
-        Config.info_out.puts("wrote into file #{tmpfile}")
-        CommandRunner.run!(Config.out, "ls #{tmpfile}")
-
-        # put it in
-        CommandRunner.run! Config.out, "docker run --rm
-          -v #{Config.config[:shared_names][:certs]}:/certs
-          -v #{certstoredir}:/tmpcert
-          alpine
-          cp /tmpcert/#{file} /certs/#{file}"
-
-        unless File.exist?(tmpfile) && File.size(tmpfile).positive?
-          raise Heighliner::Error,
-                "1Password field '#{field}' not found in item '#{item}'"
-        end
-
-        CommandRunner.run! Config.out, "docker run --rm
-          -v #{Config.config[:shared_names][:certs]}:/certs
-          -v #{tmpfile}:/cert_source
-          alpine cp /cert_source /certs/#{file}"
-        CommandRunner.run!(Config.out, "rm #{tmpfile}")
+      if cert_source[:folder]
+        copy_keyfile_from_folder(file)
+      elsif cert_source[:url]
+        copy_keyfile_from_url(file)
+      elsif cert_source[:"1password"]
+        copy_keyfile_from_1password(file)
       end
+    end
+
+    def copy_keyfile_from_folder(file)
+      folder = Config.config[:cert_source][:folder]
+      Config.info_out.puts "  Source: folder (#{folder})"
+      CommandRunner.run! Config.out, "docker run --rm
+        -v #{Config.config[:shared_names][:certs]}:/certs
+        -v #{folder}:/cert_source
+        alpine cp /cert_source/#{file} /certs/#{file}"
+    end
+
+    def copy_keyfile_from_url(file)
+      url = Config.config[:cert_source][:url]
+      Config.info_out.puts "  Source: URL (#{url}/#{file})"
+      CommandRunner.run! Config.out, "docker run --rm
+        -v #{Config.config[:shared_names][:certs]}:/certs
+        alpine wget #{url}/#{file}
+          -O /certs/#{file}"
+    end
+
+    def onepassword_field_for(file)
+      origfield = file.sub(/^#{http_suffix}\./, '')
+      fields = Config.config[:cert_source]['1password-fields']
+      field = fields ? fields[origfield] : origfield
+      [origfield, field]
+    end
+
+    def copy_keyfile_from_1password(file)
+      item = Config.config[:cert_source][:"1password"]
+      origfield, field = onepassword_field_for(file)
+
+      raise Heighliner::Error, 'OP_SERVICE_ACCOUNT_TOKEN is not set' unless ENV['OP_SERVICE_ACCOUNT_TOKEN']
+
+      Config.info_out.puts "  Source: 1Password (item: #{item}, field: #{field} (#{origfield}) )"
+
+      certstoredir = "#{ENV['CONTEXT_DIR']}/.tmp.certstore"
+      tmpfile = "#{certstoredir}/#{file}"
+
+      # take it out
+      CommandRunner.run!(Config.out, "mkdir -p #{certstoredir}")
+      CommandRunner.run!(Config.out, "op read \"op://#{item}/#{field}\" > #{tmpfile}")
+      Config.info_out.puts("wrote into file #{tmpfile}")
+      CommandRunner.run!(Config.out, "ls #{tmpfile}")
+
+      # put it in
+      CommandRunner.run! Config.out, "docker run --rm
+        -v #{Config.config[:shared_names][:certs]}:/certs
+        -v #{certstoredir}:/tmpcert
+        alpine
+        cp /tmpcert/#{file} /certs/#{file}"
+
+      unless File.exist?(tmpfile) && File.size(tmpfile).positive?
+        raise Heighliner::Error,
+              "1Password field '#{field}' not found in item '#{item}'"
+      end
+
+      CommandRunner.run! Config.out, "docker run --rm
+        -v #{Config.config[:shared_names][:certs]}:/certs
+        -v #{tmpfile}:/cert_source
+        alpine cp /cert_source /certs/#{file}"
+      CommandRunner.run!(Config.out, "rm #{tmpfile}")
     end
 
     def prepare_cert_volume!
@@ -680,7 +696,7 @@ module Heighliner
 
     def create_if_network_not_exist(net)
       out = `docker inspect #{net} 2>/dev/null`
-      out = "[]" if out.strip.empty?
+      out = '[]' if out.strip.empty?
       x = JSON.parse(out)
       return unless x.empty?
 

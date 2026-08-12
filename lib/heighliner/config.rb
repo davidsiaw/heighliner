@@ -14,7 +14,7 @@ module Heighliner
 
       def load(work_dir, use_steerfile: true)
         @work_dir = work_dir
-        @config_dir = "#{ENV['HOME']}/.heighliner"
+        @config_dir = detect_config_dir
 
         migrate_dotted_config_files
 
@@ -61,6 +61,22 @@ module Heighliner
 
       def always_verbose?
         @config[:always_verbose]
+      end
+
+      # Heighliner used to be called Kaiser. If a user has an old ~/.kaiser
+      # directory and no ~/.heighliner directory yet, keep using the old one
+      # instead of starting from scratch.
+      def detect_config_dir
+        heighliner_dir = "#{home_dir}/.heighliner"
+        kaiser_dir = "#{home_dir}/.kaiser"
+
+        return kaiser_dir if !Dir.exist?(heighliner_dir) && Dir.exist?(kaiser_dir)
+
+        heighliner_dir
+      end
+
+      def home_dir
+        ENV['HOME']
       end
 
       # Up until version 0.5.1, heighliner used dotfiles for all of it configuration.

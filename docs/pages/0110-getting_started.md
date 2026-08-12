@@ -18,6 +18,8 @@ gem install heighliner
 
 We don't recommend adding it to your bundle files, because Heighliner is more useful as an environment handler than a gem that your program can use.
 
+> **Coming from Kaiser?** Heighliner used to be called [Kaiser](https://github.com/degica/kaiser). If you have a `~/.kaiser` directory and no `~/.heighliner` directory, Heighliner keeps using `~/.kaiser` so your existing environments and databases still work. Once `~/.heighliner` exists it takes priority.
+
 ---
 
 # A Minimal Example
