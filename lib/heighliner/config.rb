@@ -38,9 +38,7 @@ module Heighliner
         load_config
 
         if use_steerfile
-          POSSIBLE_STEERFILES.each do |x|
-            @fname = x if File.exist?(x)
-          end
+          @fname = detect_steerfile_name
 
           Optimist.die <<~ERROR if @fname.nil?
             No Steerfile in current directory.
@@ -53,11 +51,20 @@ module Heighliner
         @config
       end
 
+      # Later entries win over earlier ones, so the legacy Kaiser name comes
+      # first: a repo with both files uses the Steerfile.
       POSSIBLE_STEERFILES = %w[
+        Kaiserfile
         Steerfile
         Heighliner.config
         heighliner.config
       ].freeze
+
+      # Kaiserfile is the name Heighliner used when it was called Kaiser. It has
+      # the same contents as a Steerfile, so it is loaded the same way.
+      def detect_steerfile_name
+        POSSIBLE_STEERFILES.select { |x| File.exist?(x) }.last
+      end
 
       def always_verbose?
         @config[:always_verbose]

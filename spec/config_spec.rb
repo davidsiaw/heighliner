@@ -30,4 +30,40 @@ RSpec.describe Heighliner::Config do
       end
     end
   end
+
+  describe '.detect_steerfile_name' do
+    def with_files(*files)
+      allow(File).to receive(:exist?) { |name| files.include?(name) }
+    end
+
+    it 'finds a Steerfile' do
+      with_files('Steerfile')
+
+      expect(described_class.detect_steerfile_name).to eq 'Steerfile'
+    end
+
+    it 'finds a legacy Kaiserfile' do
+      with_files('Kaiserfile')
+
+      expect(described_class.detect_steerfile_name).to eq 'Kaiserfile'
+    end
+
+    it 'prefers a Steerfile over a Kaiserfile' do
+      with_files('Kaiserfile', 'Steerfile')
+
+      expect(described_class.detect_steerfile_name).to eq 'Steerfile'
+    end
+
+    it 'prefers heighliner.config over a Kaiserfile' do
+      with_files('Kaiserfile', 'heighliner.config')
+
+      expect(described_class.detect_steerfile_name).to eq 'heighliner.config'
+    end
+
+    it 'is nil when no steerfile exists' do
+      with_files
+
+      expect(described_class.detect_steerfile_name).to be_nil
+    end
+  end
 end

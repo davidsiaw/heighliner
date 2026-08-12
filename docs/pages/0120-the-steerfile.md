@@ -14,6 +14,8 @@ expose 8080
 
 But what does this all mean?
 
+> The file can also be named `Heighliner.config`, `heighliner.config`, or — for projects that came from [Kaiser](https://github.com/degica/kaiser) — `Kaiserfile`. A `Kaiserfile` is read exactly like a `Steerfile`. If several of these exist, `Kaiserfile` has the lowest priority.
+
 ---
 
 ## Steerfile Statements
