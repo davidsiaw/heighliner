@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'optimist'
 require 'heighliner/command_runner'
 require 'active_support/core_ext/object/blank'
 
@@ -7,6 +8,16 @@ module Heighliner
   # The commandline
   class Cli
     extend Heighliner::CliOptions
+
+    # The certificate files Heighliner fetches, as extensions of the http
+    # suffix: `<suffix>.chain.pem`, `<suffix>.crt`, `<suffix>.key`. These double
+    # as the default 1Password field names, which is why `heighliner set
+    # cert-1password-field` validates against this list.
+    CERT_FILE_EXTS = %w[
+      chain.pem
+      crt
+      key
+    ].freeze
 
     attr_reader :use_steerfile
 
@@ -580,11 +591,7 @@ module Heighliner
       create_if_volume_not_exist Config.config[:shared_names][:certs]
       return unless Config.config[:cert_source]
 
-      %w[
-        chain.pem
-        crt
-        key
-      ].each do |file_ext|
+      CERT_FILE_EXTS.each do |file_ext|
         copy_keyfile("#{http_suffix}.#{file_ext}")
       end
       Config.info_out.puts 'Certificate loading complete'

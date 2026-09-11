@@ -70,29 +70,53 @@ If you store your certificates in 1Password, you can use the `cert-1password` op
 heighliner set cert-1password Vault/Item
 ```
 
-This tells Heighliner to look for the certificate fields in the specified 1Password item. By default, the field names should match the file extensions (e.g., `key`, `crt`, `chain`). For example, if your item is `Vault/Dev-Certs`, Heighliner will read:
+This tells Heighliner to look for the certificate fields in the specified 1Password item. By default, the field names match the file extensions: `key`, `crt` and `chain.pem`. For example, if your item is `Vault/Dev-Certs`, Heighliner will read:
 
 ```
-op read "op://Vault/Dev-Certs/key"   → lvh.me.key
-op read "op://Vault/Dev-Certs/crt"   → lvh.me.crt
-op read "op://Vault/Dev-Certs/chain" → lvh.me.chain.pem
+op read "op://Vault/Dev-Certs/key"       → lvh.me.key
+op read "op://Vault/Dev-Certs/crt"       → lvh.me.crt
+op read "op://Vault/Dev-Certs/chain.pem" → lvh.me.chain.pem
 ```
+
+The `op` CLI must be installed and authenticated on your machine.
 
 #### Custom field names
 
-If your 1Password item uses different field names, you can customize them:
+If your 1Password item uses different field names, set them one at a time:
 
 ```sh
-heighliner set cert-1password-fields  '{\"key\":\"privkey\",\"crt\":\"fullchain\",\"chain.pem\":\"chain\"}'
+heighliner set cert-1password-field key privkey
+heighliner set cert-1password-field crt fullchain
+heighliner set cert-1password-field chain.pem ca-bundle
 ```
 
-This tells Heighliner to read:
+The first word is Heighliner's name for the file (`key`, `crt` or `chain.pem` — note it is `chain.pem`, not `chain`), the second is the field name in your item. Fields you leave out keep their default name. A name that is not one of the three is rejected rather than silently ignored.
+
+With the above, Heighliner reads:
 
 ```
-op read "op://Vault/Dev-Certs/private-key"   → lvh.me.key
-op read "op://Vault/Dev-Certs/certificate"   → lvh.me.crt
-op read "op://Vault/Dev-Certs/ca-bundle"     → lvh.me.chain.pem
+op read "op://Vault/Dev-Certs/privkey"   → lvh.me.key
+op read "op://Vault/Dev-Certs/fullchain" → lvh.me.crt
+op read "op://Vault/Dev-Certs/ca-bundle" → lvh.me.chain.pem
 ```
+
+There is nothing to quote here, which is the point: an earlier JSON form of this command was easy to mangle.
+
+#### Setting all the fields at once
+
+`cert-1password-fields` (plural) still takes every field as one JSON object:
+
+```sh
+heighliner set cert-1password-fields '{"key":"privkey","crt":"fullchain","chain.pem":"ca-bundle"}'
+```
+
+This works, but the JSON has to survive your shell, and on Heighliner 0.10.0 and older the Docker image's entrypoint re-parsed its arguments and stripped the quotes, producing:
+
+```
+JSON::ParserError: expected object key, got 'key:privkey,...'
+```
+
+If you hit that, either upgrade or use the singular `cert-1password-field` above, which has nothing for a shell to eat.
 
 #### Docker mode
 

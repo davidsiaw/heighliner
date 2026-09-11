@@ -129,7 +129,9 @@ db: 9016
 
 #### `cert-source` Certificate source
 
-This tells you the URL from which SSL/HTTPS certificates are downloaded from. You can use this to check if you have it set to the right URL.
+This tells you the URL or folder from which SSL/HTTPS certificates are read. You can use this to check if you have it set to the right place.
+
+> Only `cert-url` and `cert-folder` sources are printed. If your source is a 1Password item this prints a blank line — check `~/.heighliner/config.yml` to see it.
 
 #### `http-suffix` HTTP Suffix
 
@@ -211,18 +213,124 @@ Sometimes a db state can become somewhat inconsistent or the command defined by 
 
 ## `heighliner set <key> <value>`
 
+Sets the machine-wide settings stored in `~/.heighliner/config.yml`. These are not per-environment: every Heighliner environment on this machine sees them.
+
+This command does not need a [Steerfile](/0120-the-steerfile) and does not need `heighliner init` to have been run, so you can run it from anywhere.
+
 ### Parameters
 
 Valid `<key>` parameters are:
 
-- `http-suffix` - Sets the domain suffix for the reverse proxy to use (defaults to lvh.me)
-- `cert-url`    - Sets up a URL from which HTTPS certificates can be downloaded.
-- `cert-folder` - Sets up a folder from which HTTPS certificates can be copied.
-- `help-https`  - Shows the HTTPS notes.
+- `http-suffix`           - Sets the domain suffix for the reverse proxy to use (defaults to lvh.me)
+- `cert-url`              - Sets up a URL from which HTTPS certificates can be downloaded.
+- `cert-folder`           - Sets up a folder from which HTTPS certificates can be copied.
+- `cert-1password`        - Sets up a 1Password item from which HTTPS certificates are read.
+- `cert-1password-field`  - Overrides one 1Password field name.
+- `cert-1password-fields` - Overrides all the 1Password field names at once, as JSON.
+- `help-https`            - Shows the HTTPS notes.
 
 For example you can go
 
 `heighliner set http-suffix local.aweso.me` and nginx will serve everything on that suffix, i.e. `hats.local.aweso.me`.
+
+#### `http-suffix` HTTP suffix
+
+```sh
+heighliner set http-suffix local.aweso.me
+```
+
+The suffix every environment is served under. With the above, the `hats` environment is served at `hats.local.aweso.me`. Defaults to `lvh.me`. See [suffixes](/0140-suffixes).
+
+The suffix also decides the *names* of the certificate files Heighliner looks for. For a suffix of `local.aweso.me` it always wants these three:
+
+```
+local.aweso.me.crt
+local.aweso.me.key
+local.aweso.me.chain.pem
+```
+
+#### `cert-url` Certificates from a URL
+
+```sh
+heighliner set cert-url https://internal-site.com/dev-certificates
+```
+
+The three files above are downloaded from that root, e.g. `https://internal-site.com/dev-certificates/local.aweso.me.crt`.
+
+#### `cert-folder` Certificates from a folder
+
+```sh
+heighliner set cert-folder /home/me/my-certificate-folder
+```
+
+The three files above are copied out of that folder, e.g. `/home/me/my-certificate-folder/local.aweso.me.crt`.
+
+#### `cert-1password` Certificates from a 1Password item
+
+```sh
+heighliner set cert-1password Vault/Dev-Certs
+```
+
+The value is a `Vault/Item` reference. Heighliner shells out to the [1Password CLI](https://developer.1password.com/docs/cli/) (`op`), so `op` must be installed and authenticated. In the Docker image, authentication is done with a service account token passed as `OP_SERVICE_ACCOUNT_TOKEN`; Heighliner fails with `OP_SERVICE_ACCOUNT_TOKEN is not set` if it is missing.
+
+By default the field read for each file is the file name with the suffix stripped off — so `key`, `crt` and `chain.pem`:
+
+```
+op read "op://Vault/Dev-Certs/key"       → local.aweso.me.key
+op read "op://Vault/Dev-Certs/crt"       → local.aweso.me.crt
+op read "op://Vault/Dev-Certs/chain.pem" → local.aweso.me.chain.pem
+```
+
+Running `heighliner set cert-1password` with no value prints these notes instead of setting anything.
+
+#### `cert-1password-field` Custom 1Password field name
+
+If your 1Password item does not name its fields `key`, `crt` and `chain.pem`, override them one at a time:
+
+```sh
+heighliner set cert-1password-field key privkey
+heighliner set cert-1password-field crt fullchain
+heighliner set cert-1password-field chain.pem ca-bundle
+```
+
+which makes Heighliner read:
+
+```
+op read "op://Vault/Dev-Certs/privkey"   → local.aweso.me.key
+op read "op://Vault/Dev-Certs/fullchain" → local.aweso.me.crt
+op read "op://Vault/Dev-Certs/ca-bundle" → local.aweso.me.chain.pem
+```
+
+The first argument is the certificate file, so it is one of `key`, `crt`, `chain.pem` — note the third is `chain.pem`, not `chain`. Anything else is rejected rather than silently ignored:
+
+```
+Error: Unknown certificate field: 'chain'. Valid fields are: chain.pem, crt, key.
+```
+
+Fields you do not override keep their default name. Both arguments are plain words, so there is no quoting to get wrong.
+
+#### `cert-1password-fields` All the field names at once
+
+The plural form takes every field as a single JSON object, merging into whatever is already set:
+
+```sh
+heighliner set cert-1password-fields '{"key":"privkey","crt":"fullchain","chain.pem":"ca-bundle"}'
+```
+
+Prefer the singular `cert-1password-field`. The JSON here has to survive your shell intact, and on Heighliner 0.10.0 and older the Docker image's entrypoint re-parsed its arguments and stripped the quotes, producing `JSON::ParserError: expected object key`. Unparseable JSON now says so and points at the singular form.
+
+#### `help-https` HTTPS notes
+
+```sh
+heighliner set help-https
+```
+
+Prints the notes on how the suffix and the certificate sources fit together. Sets nothing.
+
+### Notes
+
+- `cert-url`, `cert-folder` and `cert-1password` are **mutually exclusive**. Setting one erases the other two.
+- Certificates are only fetched when the shared nginx container is brought up, so after changing any of these run `heighliner down`, `heighliner shutdown` and then `heighliner up` again.
 
 ### Errors
 
