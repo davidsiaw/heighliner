@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 
 require 'json'
+require 'heighliner/cmds/set_help'
 
 module Heighliner
   module Cmds
     class Set < Cli
+      include SetHelp
+
       def usage
         <<~EOS
           This command lets you set up special variables that configure heighliner's behavior for you.
@@ -15,12 +18,15 @@ module Heighliner
           cert-url             - Sets up a URL from which HTTPS certificates can be downloaded.
           cert-folder          - Sets up a folder from which HTTPS certificates can be copied.
           cert-1password       - Sets up a 1Password item from which HTTPS certificates can be downloaded.
-          cert-1password-fields - Sets custom 1Password field names (JSON object)
+          cert-1password-field - Sets one custom 1Password field name, e.g. `key privkey`
+          cert-1password-fields - Sets custom 1Password field names all at once (JSON object).
+                                  Prefer cert-1password-field: JSON needs shell quoting.
           help-https           - Shows the HTTPS notes.
 
           USAGE: heighliner set cert-url
                  heighliner set cert-folder
                  heighliner set cert-1password
+                 heighliner set cert-1password-field key privkey
                  heighliner set cert-1password-fields
                  heighliner set http-suffix
                  heighliner set help-https
@@ -32,30 +38,44 @@ module Heighliner
         @use_steerfile = false
       end
 
+      HANDLERS = {
+        'cert-url' => :handle_cert_url,
+        'cert-folder' => :handle_cert_folder,
+        'cert-1password' => :handle_cert_1password,
+        'cert-1password-field' => :handle_cert_1password_field,
+        'cert-1password-fields' => :handle_cert_1password_fields,
+        'http-suffix' => :handle_http_suffix,
+        'help-https' => :handle_help_https
+      }.freeze
+
       def execute(_opts)
         cmd = ARGV.shift
+        handler = HANDLERS[cmd]
 
-        case cmd
-        when 'cert-url'
-          Config.config[:cert_source] = { url: ARGV.shift }
-        when 'cert-folder'
-          Config.config[:cert_source] = { folder: ARGV.shift }
-        when 'cert-1password'
-          handle_cert_1password
-        when 'cert-1password-fields'
-          Config.config[:cert_source]['1password-fields'] = JSON.parse(ARGV.shift)
-        when 'http-suffix'
-          Config.config[:http_suffix] = ARGV.shift
-        when 'help-https'
-          puts help_https
-        else
-          Optimist.die "Unknown subcommand: '#{cmd}'"
-        end
+        return Optimist.die "Unknown subcommand: '#{cmd}'" unless handler
+
+        send(handler)
 
         save_config
       end
 
       private
+
+      def handle_cert_url
+        Config.config[:cert_source] = { url: ARGV.shift }
+      end
+
+      def handle_cert_folder
+        Config.config[:cert_source] = { folder: ARGV.shift }
+      end
+
+      def handle_http_suffix
+        Config.config[:http_suffix] = ARGV.shift
+      end
+
+      def handle_help_https
+        puts help_https
+      end
 
       def handle_cert_1password
         if ARGV.empty?
@@ -65,62 +85,47 @@ module Heighliner
         end
       end
 
-      def help_https
-        <<~SET_HELP
-          Notes on HTTPS:
+      # Sets a single field name as two plain words, so there is nothing for a
+      # shell to mangle:
+      #   heighliner set cert-1password-field key privkey
+      def handle_cert_1password_field
+        name = ARGV.shift
+        value = ARGV.shift
 
-          You need to set suffix and either cert-url or cert-folder to enable HTTPS.
+        unless Cli::CERT_FILE_EXTS.include?(name)
+          return Optimist.die "Unknown certificate field: '#{name}'. " \
+                              "Valid fields are: #{Cli::CERT_FILE_EXTS.join(', ')}"
+        end
 
-          cert-url and cert-folder are mutually exclusive. If you set one of them the other will be erased.
+        return Optimist.die "No value given for field '#{name}'" if value.blank?
 
-          The cert-url and cert-folder must satisfy the following requirements to work:
-
-          The strings must be the root of certificates named after the suffix. For example,
-
-            if cert-url is https://mydomain.com/certs and your suffix is local.mydomain.com, the following
-            url need to be the certificate files:
-
-            https://mydomain.com/certs/local.mydomain.com.chain.pem
-            https://mydomain.com/certs/local.mydomain.com.crt
-            https://mydomain.com/certs/local.mydomain.com.key
-
-          Another example:
-
-            If you use suffix of localme.com and cert-folder is /home/me/https, The following files need to exist:
-
-            /home/me/https/localme.com.chain.pem
-            /home/me/https/localme.com.crt
-            /home/me/https/localme.com.key
-        SET_HELP
+        cert_1password_fields[name] = value
       end
 
-      def help_1password
-        <<~SET_HELP
-          Notes on 1Password certificates:
+      # Accepts every field at once as JSON. Kept for configs and scripts that
+      # already use it; cert-1password-field avoids the shell quoting entirely.
+      def handle_cert_1password_fields
+        json = ARGV.shift
+        return Optimist.die 'No JSON object given' if json.blank?
 
-          You need to set suffix and cert-1password to enable HTTPS with 1Password.
+        fields = begin
+          JSON.parse(json)
+        rescue JSON::ParserError => e
+          return Optimist.die "Could not parse JSON: #{e.message}. " \
+                              'Your shell may have eaten the quotes. Try: ' \
+                              'heighliner set cert-1password-field key privkey'
+        end
 
-          The cert-1password value should be in the format 'Vault/Item'.
+        unknown = fields.keys - Cli::CERT_FILE_EXTS
+        return Optimist.die "Unknown certificate fields: #{unknown.join(', ')}" unless unknown.empty?
 
-          By default, the field names in the 1Password item should match the file extensions:
-            - key   → <suffix>.key
-            - crt   → <suffix>.crt
-            - chain → <suffix>.chain.pem
+        cert_1password_fields.merge!(fields)
+      end
 
-          You can customize field names with:
-            heighliner set cert-1password-fields '{"key":"private-key","crt":"certificate","chain":"ca-bundle"}'
-
-          Example:
-            heighliner set cert-1password Vault/Dev-Certs
-            heighliner set http-suffix local.mydomain.com
-
-          This will read:
-            op read "op://Vault/Dev-Certs/key"   → local.mydomain.com.key
-            op read "op://Vault/Dev-Certs/crt"   → local.mydomain.com.crt
-            op read "op://Vault/Dev-Certs/chain" → local.mydomain.com.chain.pem
-
-          Make sure the `op` CLI is installed and authenticated on your machine.
-        SET_HELP
+      # Field names live inside the certificate source, which may not exist yet.
+      def cert_1password_fields
+        Config.config[:cert_source] ||= {}
+        Config.config[:cert_source]['1password-fields'] ||= {}
       end
     end
   end
